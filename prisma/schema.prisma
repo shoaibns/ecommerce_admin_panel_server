@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model Admin {
+  id String @id @default(uuid())
+  fname           String
+  lname           String
+  email           String    @unique
+  emailHash       String?   @unique
+  mobileNumber    String
+  profilePicture  String?
+  city            String?
+  country         String?
+  password        String
+  role            String
+  isSuperAdmin    Boolean   @default(false)
+  isBlocked       Boolean   @default(false)
+  assignedGroupId String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+  createdById     String?
+  updatedById     String?
+  updatedBytype   String?
+
+  userGroup     UserGroup? @relation(fields: [assignedGroupId], references: [id])
+
+  @@index([deletedAt])
+}
+
+model UserGroup {
+  id            String   @id @default(uuid())
+  title         String
+  createdBy     String
+  createdByRole CreatedByRole
+  isDeleted     Boolean  @default(false)
+  deletedAt     DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Array of privilege IDs (UUIDs)
+  privileges    String[]
+
+  Admin         Admin[]
+
+  @@unique([title, createdBy])
+  @@index([isDeleted])
+}
+
+model Privilege {
+  id            String   @id @default(uuid())
+  name          String
+  status        Boolean  @default(true)
+  createdBy     String
+  createdByRole CreatedByRole
+  isDeleted     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([name, createdBy, createdByRole])
+}
+
+enum CreatedByRole {
+  superAdmin
+}

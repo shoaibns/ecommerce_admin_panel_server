@@ -1,9 +1,20 @@
 import express from "express";
 import dotenv from "dotenv";
+import morgan from "morgan";
+import i18nMiddleware from "./middleware/i18n.js"
+import adminRoutes  from "./routes/adminRoutes.js";
+
+const app = express()
 
 dotenv.config()
 
-const app = express()
+app.use(express.json());
+app.use(morgan("common"));
+app.use(i18nMiddleware);
+
+app.use("/api/admin", adminRoutes);
+
+// test APIs
 
 app.get("/get", (req, res)=> {
     res.send({message : "Ok from server"})
