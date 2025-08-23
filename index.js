@@ -16,11 +16,11 @@ app.use("/api/admin", adminRoutes);
 
 // test APIs
 
-app.get("/get", (req, res)=> {
+app.get("/api/get", (req, res)=> {
     res.send({message : "Ok from server"})
 })
 
-app.get("/get/user_details", (req, res)=> {
+app.get("/api/get/user_details", (req, res)=> {
     res.send({
         name : "Shoaib Mohammed",
         Email: "shoaib.gmail.com",
