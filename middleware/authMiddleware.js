@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import prisma from "../config/db.js";
+import prisma from "../config/dbConnect.js";
 // import prisma from "../prisma/client.js";
 import { sendError } from "../utils/responseWrapper.js";
 

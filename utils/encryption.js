@@ -1,4 +1,6 @@
 import crypto from "crypto";
+import dotenv from "dotenv";
+dotenv.config();
 const algorithm = 'aes-256-cbc';
 const secretKey = process.env.ENCRYPTION_KEY;
 const ivLength = 16; // AES block size
@@ -7,6 +9,8 @@ export function encrypt(text) {
     
   const iv = crypto.randomBytes(ivLength);
 
+  console.log("secret key___________", secretKey);
+  
   const key = Buffer.from(secretKey, 'base64');
 
   const cipher = crypto.createCipheriv(algorithm, key, iv);

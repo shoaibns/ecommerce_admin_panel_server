@@ -3,8 +3,14 @@ import dotenv from "dotenv";
 import morgan from "morgan";
 import i18nMiddleware from "./middleware/i18n.js"
 import adminRoutes  from "./routes/adminRoutes.js";
+import path from "path";
+import fs from "fs";
+import ejs from "ejs";
+import { fileURLToPath } from "url";
 
 const app = express()
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config()
 
@@ -13,6 +19,9 @@ app.use(morgan("common"));
 app.use(i18nMiddleware);
 
 app.use("/api/admin", adminRoutes);
+
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
 
 // test APIs
 

@@ -36,43 +36,40 @@ model Admin {
   updatedById     String?
   updatedBytype   String?
 
-  userGroup     UserGroup? @relation(fields: [assignedGroupId], references: [id])
-
   @@index([deletedAt])
 }
 
 model UserGroup {
-  id            String   @id @default(uuid())
-  title         String
-  createdBy     String
-  createdByRole CreatedByRole
-  isDeleted     Boolean  @default(false)
-  deletedAt     DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                String             @id @default(uuid()) @db.Uuid
+  name              String
+  description       String?
+  createdById       String             @db.Uuid
+  createdByRole     String?
+  isActive          Boolean            @default(true)
+  assignedUserCount Int?
+  isDeleted         Boolean            @default(false)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  deletedAt         DateTime?
 
-  // Array of privilege IDs (UUIDs)
-  privileges    String[]
+  permissions       ModulePermission[]
 
-  Admin         Admin[]
-
-  @@unique([title, createdBy])
+  @@unique([name, createdById])
   @@index([isDeleted])
+  @@index([isActive])
 }
 
-model Privilege {
-  id            String   @id @default(uuid())
-  name          String
-  status        Boolean  @default(true)
-  createdBy     String
-  createdByRole CreatedByRole
-  isDeleted     Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+model ModulePermission {
+  id          String     @id @default(uuid()) @db.Uuid
+  moduleName  String
+  read        Boolean    @default(false)
+  write       Boolean    @default(false)
+  edit        Boolean    @default(false)
+  delete      Boolean    @default(false)
+  export      Boolean    @default(false)
+  userGroupId String     @db.Uuid
 
-  @@unique([name, createdBy, createdByRole])
-}
+  userGroup   UserGroup  @relation(fields: [userGroupId], references: [id])
 
-enum CreatedByRole {
-  superAdmin
+  @@unique([userGroupId, moduleName])
 }

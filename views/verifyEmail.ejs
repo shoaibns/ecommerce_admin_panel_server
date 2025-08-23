@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Verify Your Email</title>
+</head>
+
+<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 40px;">
+    <div
+        style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <h2 style="color: #333333;">Hi <%= name %>,</h2>
+
+        <!-- <p style="font-size: 16px; color: #555555;">
+            Thanks for registering. Use the OTP below to verify your email address. This code is valid for a limited
+            time:
+        </p>
+        <p style="font-size: 16px; color: #555555;">
+            OPT is valid only for 10 minutes
+        </p> -->
+        <p style="font-size: 16px; color: #555555;">
+            <% if (purpose==='verify' ) { %>
+                Thanks for registering. Use the OTP below to verify your email address.
+                <% } else if (purpose==='resend' ) { %>
+                    You requested a new OTP. Use the code below to verify your email address.
+                    <% } else if (purpose==='reset' ) { %>
+                        You requested to reset your password. Use the OTP below to continue.
+                        <% } %>
+        </p>
+
+        <p style="font-size: 16px; color: #555555;">
+            OTP is valid only for 10 minutes.
+        </p>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <div
+                style="display: inline-block; padding: 16px 32px; background-color: #28a745; color: white; border-radius: 5px; font-size: 24px; font-weight: bold;">
+                <%= otp %>
+            </div>
+        </div>
+        <p style="font-size: 14px; color: #999999;">
+            If you didn’t request this, you can safely ignore this email.
+        </p>
+    </div>
+</body>
+
+</html>
