@@ -1,6 +1,6 @@
 const sendSuccess = (res, statusCode, message, data = undefined) => {
   return res.status(statusCode).send({
-    success: true,
+    status: "success",
     message,
     data,
   });
@@ -8,10 +8,10 @@ const sendSuccess = (res, statusCode, message, data = undefined) => {
 
 const sendError = (res, message, error = null) => {
   return res.status(400).send({
-    success: false,
+    status: "error",
     message,
     ...(error && { error: error?.message || error }),
   });
-};
+};  
 
 export { sendSuccess, sendError };

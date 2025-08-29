@@ -50,9 +50,19 @@ const create = async (userData) => {
   });
 };
 
+const update = async (adminId, updatedData) => {
+  return await prisma.admin.update({
+    where: { id: adminId },
+    data: updatedData,
+  });
+};
+
+// const updatedAdmin = 
+
 export {
     adminResponse,
     findOne,
     findByEmail,
     create,
+    update,
 }

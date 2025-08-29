@@ -92,6 +92,13 @@ const login = async (req, res) => {
 
         const adminResponse = adminServices.adminResponse(admin)
 
+        console.log("adminResponse", adminResponse);
+
+        res.cookie("accessToken", accessToken, {
+          httpOnly: true,
+          secure: true,
+        });
+        
         return sendSuccess(res, 200, "Login Successfull", {
             accessToken,
             adminResponse
@@ -101,6 +108,27 @@ const login = async (req, res) => {
         console.log(error);
         
         return sendError(res, "Login faild", error.message)
+    }
+}
+
+const logout = async (req, res) => {
+    try {
+        // Clear the accessToken cookie by setting its expiration to a past date
+        res.clearCookie("accessToken");
+
+        // Send a success response
+        return res.status(200).json({
+            status: "success",
+            message: "Logout successful"
+        });
+        
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            status: "error",
+            message: "Logout failed",
+            details: error.message
+        });
     }
 }
 
@@ -121,6 +149,61 @@ const getAdminProfile = async (req, res) => {
         return sendError(res, "Faild to get admin profile", error.message)
     }
 }
+
+const updateAdminProfile = async (req, res) => {
+  try {
+    const adminId = req.user.id;
+    if (!adminId) return sendError(res, "Admin ID is required");
+
+    const admin = await adminServices.findOne(adminId);
+    if (!admin) return sendError(res, "Admin profile not found");
+
+    const { fname, lname, mobileNumber } = req.body;
+
+    // Handle file upload via Multer fields
+    const newImageUploaded = !!req.files?.profilePicture?.[0];
+    const newImagePath = newImageUploaded
+      ? `/uploads/profileImgs/${req.files.profilePicture[0].filename}`
+      : null;
+
+    // Check for unchanged fields
+    const isSameFname = fname === admin.fname;
+    const isSameLname = lname === admin.lname;
+    const isSameMobileNumber = mobileNumber === admin.mobileNumber;
+    const isSameImage = !newImageUploaded || newImagePath === admin.profilePicture;
+
+    if (isSameFname && isSameLname && isSameMobileNumber && isSameImage) {
+      return sendSuccess(res, 200, "No changes detected", admin);
+    }
+
+    // Handle image update
+    if (newImageUploaded && admin.profilePicture) {
+      const oldImagePath = path.join(process.cwd(), `public${admin.profilePicture}`);
+      if (fs.existsSync(oldImagePath)) fs.unlinkSync(oldImagePath);
+    }
+
+    // Build update data object
+    const updatedData = {};
+    if (fname) updatedData.fname = fname;
+    if (lname) updatedData.lname = lname;
+    if (mobileNumber) updatedData.mobileNumber = encrypt(mobileNumber);
+    if (newImageUploaded) updatedData.profilePicture = newImagePath;
+
+    const updatedAdmin = await adminServices.update(adminId, updatedData);
+
+    const adminResponse = adminServices.adminResponse(updatedAdmin);
+
+    return sendSuccess(
+      res,
+      200,
+      "Admin profile updated successfully",
+      adminResponse
+    );
+  } catch (error) {
+    console.error("Update Admin Profile Error:", error);
+    return sendError(res, "Failed to update admin profile", error.message);
+  }
+};
 
 // User Group
 
@@ -312,7 +395,9 @@ const deleteUserGroup = async (req, res) => {
 export {
     registerSubAdmin,
     login,
+    logout,
     getAdminProfile,
+    updateAdminProfile,
     createUserGroup,
     getUserGroupList,
     viewUserGroup,
