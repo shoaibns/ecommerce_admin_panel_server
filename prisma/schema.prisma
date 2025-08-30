@@ -22,6 +22,7 @@ model Admin {
   emailHash       String?   @unique
   mobileNumber    String
   profilePicture  String?
+  profilePictureKey String?
   city            String?
   country         String?
   password        String

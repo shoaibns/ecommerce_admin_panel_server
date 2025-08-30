@@ -8,6 +8,8 @@ import fs from "fs";
 import ejs from "ejs";
 import { fileURLToPath } from "url";
 import { sendEmail } from "../utils/sendEmail.js"
+import { DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { s3 } from "../middleware/s3Upload.js"; // export s3 from middleware
 
 const registerSubAdmin = async (req, res) => {
   const t = req.t;
@@ -161,25 +163,52 @@ const updateAdminProfile = async (req, res) => {
     const { fname, lname, mobileNumber } = req.body;
 
     // Handle file upload via Multer fields
+    // const newImageUploaded = !!req.files?.profilePicture?.[0];
+    // const newImagePath = newImageUploaded
+    //   ? `/uploads/profileImgs/${req.files.profilePicture[0].filename}`
+    //   : null;
+
+    // Handle file upload via Multer-S3
     const newImageUploaded = !!req.files?.profilePicture?.[0];
-    const newImagePath = newImageUploaded
-      ? `/uploads/profileImgs/${req.files.profilePicture[0].filename}`
+    // Log full S3 object for profilePicture
+    console.log(
+      "Uploaded profilePicture object:",
+      req.files?.profilePicture?.[0]
+    );
+    const newImageUrl = newImageUploaded
+      ? req.files.profilePicture[0].location
+      : null;
+    const newImageKey = newImageUploaded
+      ? req.files.profilePicture[0].key 
       : null;
 
     // Check for unchanged fields
     const isSameFname = fname === admin.fname;
     const isSameLname = lname === admin.lname;
     const isSameMobileNumber = mobileNumber === admin.mobileNumber;
-    const isSameImage = !newImageUploaded || newImagePath === admin.profilePicture;
+    // const isSameImage =
+    //   !newImageUploaded || newImagePath === admin.profilePicture;
+    const isSameImage =
+      !newImageUploaded || newImageUrl === admin.profilePicture;
 
     if (isSameFname && isSameLname && isSameMobileNumber && isSameImage) {
       return sendSuccess(res, 200, "No changes detected", admin);
     }
 
     // Handle image update
+    // if (newImageUploaded && admin.profilePicture) {
+    //   const oldImagePath = path.join(process.cwd(), `public${admin.profilePicture}`);
+    //   if (fs.existsSync(oldImagePath)) fs.unlinkSync(oldImagePath);
+    // }
+
     if (newImageUploaded && admin.profilePicture) {
-      const oldImagePath = path.join(process.cwd(), `public${admin.profilePicture}`);
-      if (fs.existsSync(oldImagePath)) fs.unlinkSync(oldImagePath);
+      const oldKey = admin.profilePicture.split(`.amazonaws.com/`)[1];
+      await s3.send(
+        new DeleteObjectCommand({
+          Bucket: process.env.AWS_S3_BUCKET_NAME,
+          Key: oldKey,
+        })
+      );
     }
 
     // Build update data object
@@ -187,7 +216,12 @@ const updateAdminProfile = async (req, res) => {
     if (fname) updatedData.fname = fname;
     if (lname) updatedData.lname = lname;
     if (mobileNumber) updatedData.mobileNumber = encrypt(mobileNumber);
-    if (newImageUploaded) updatedData.profilePicture = newImagePath;
+    // if (newImageUploaded) updatedData.profilePicture = newImagePath; // ✅ save local path
+    // if (newImageUploaded) updatedData.profilePicture = newImageUrl; // ✅ save S3 URL
+    if (newImageUploaded) {
+      updatedData.profilePicture = newImageUrl;
+      updatedData.profilePictureKey = newImageKey; 
+    }
 
     const updatedAdmin = await adminServices.update(adminId, updatedData);
 

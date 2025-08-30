@@ -1,7 +1,8 @@
 import express from "express";
 const router = express.Router();
 import * as adminController from "../controllers/adminControllers.js";
-import * as upload from "../middleware/uploadMiddleware.js";
+// import * as upload from "../middleware/uploadMiddleware.js";
+import * as upload from "../middleware/s3Upload.js";
 import { requireUser } from "../middleware/authMiddleware.js";
 
 // router.post("/register",upload.formData, adminController.registerSubAdmin);
